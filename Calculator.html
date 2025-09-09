@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fa" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculator</title>
+
+  <style>
+    /* ===== بدنه صفحه ===== */
+    body {
+      margin: 0; /* حذف فاصله پیش‌فرض مرورگر */
+      font-family: "Segoe UI", Arial, sans-serif; /* فونت شبیه ویندوز */
+      background: #1e1e1e; /* رنگ پس‌زمینه تاریک */
+      color: #fff; /* رنگ متن سفید */
+      display: grid; /* صفحه به صورت گرید برای ماشین حساب و پنل جانبی */
+      grid-template-columns: 2fr 1fr; /* ستون‌ها: 2 قسمت برای ماشین حساب، 1 قسمت برای پنل جانبی */
+      height: 100vh; /* ارتفاع کل صفحه */
+      overflow: hidden; /* جلوگیری از اسکرول */
+    }
+
+    /* ===== بخش ماشین حساب ===== */
+    .calculator {
+      display: flex; /* حالت فلکس برای قرار دادن نمایشگر و دکمه‌ها */
+      flex-direction: column; /* مرتب کردن عناصر از بالا به پایین */
+      padding: 20px; /* فاصله داخلی */
+    }
+
+    /* ===== نمایشگر ماشین حساب ===== */
+    .display {
+      text-align: right; /* متن به سمت راست */
+      font-size: 2.5rem; /* اندازه بزرگ اعداد */
+      padding: 15px; /* فاصله داخلی نمایشگر */
+      background: #2d2d2d; /* رنگ پس‌زمینه نمایشگر */
+      border-radius: 6px; /* گوشه‌های گرد */
+      margin-bottom: 15px; /* فاصله پایین نمایشگر تا دکمه‌ها */
+      min-height: 60px; /* حداقل ارتفاع */
+      overflow: hidden; /* جلوگیری از بیرون زدن متن */
+      white-space: nowrap; /* جلوگیری از شکست خط */
+    }
+
+    /* ===== بخش دکمه‌ها ===== */
+    .buttons {
+      display: grid; /* نمایش دکمه‌ها به صورت شبکه‌ای */
+      grid-template-columns: repeat(4, 1fr); /* 4 ستون هم‌اندازه */
+      gap: 10px; /* فاصله بین دکمه‌ها */
+      flex-grow: 1; /* گرفتن فضای باقی‌مانده */
+    }
+
+    button {
+      font-size: 1.2rem; /* اندازه متن دکمه‌ها */
+      border: none; /* بدون حاشیه */
+      border-radius: 4px; /* گوشه‌های گرد */
+      background: #3a3a3a; /* رنگ دکمه‌ها */
+      color: white; /* رنگ متن دکمه‌ها */
+      cursor: pointer; /* شکل موس هنگام هاور */
+      transition: 0.2s; /* افکت نرم هنگام هاور */
+    }
+
+    button:hover {
+      background: #4a4a4a; /* تغییر رنگ هنگام هاور */
+    }
+
+    button.equal {
+      background: #d24635; /* رنگ دکمه مساوی */
+    }
+
+    button.equal:hover {
+      background: #b93c2d; /* تغییر رنگ دکمه مساوی هنگام هاور */
+    }
+
+    /* ===== پنل history / memory ===== */
+    .side-panel {
+      border-left: 1px solid #333; /* خط جداکننده با ماشین حساب */
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-direction: column; /* تب‌ها زیر هم */
+      margin-bottom: 15px;
+    }
+
+    .tab {
+      padding: 10px; /* فاصله داخلی تب‌ها */
+      cursor: pointer; /* موس تغییر شکل هنگام هاور */
+      border-bottom: 2px solid transparent; /* خط زیر تب فعال */
+    }
+
+    .tab.active {
+      border-bottom: 2px solid #d24635; /* خط تب فعال قرمز */
+    }
+
+    .panel-content {
+      flex-grow: 1; /* گرفتن فضای باقی‌مانده */
+      overflow-y: auto; /* اسکرول عمودی اگر محتوا زیاد باشد */
+      font-size: 0.9rem;
+      color: #aaa; /* رنگ خاکستری برای محتوا */
+    }
+
+    .history-item {
+      padding: 5px 0; /* فاصله بالا و پایین برای هر آیتم */
+      border-bottom: 1px solid #333; /* خط جداکننده هر آیتم */
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== بخش ماشین حساب ===== -->
+  <div class="calculator">
+    <!-- نمایشگر -->
+    <div class="display" id="display">0</div>
+
+    <!-- دکمه‌ها -->
+    <div class="buttons">
+      <button>MC</button> <!-- پاک کردن حافظه -->
+      <button>MR</button> <!-- بازیابی حافظه -->
+      <button>M+</button> <!-- افزودن به حافظه -->
+      <button>M-</button> <!-- کم کردن از حافظه -->
+
+      <button>%</button> <!-- درصد -->
+      <button id="ce">CE</button> <!-- پاک کردن ورودی فعلی -->
+      <button id="c">C</button> <!-- پاک کردن همه -->
+      <button id="back">⌫</button> <!-- حذف یک رقم -->
+      <button id="inv">1/x</button>
+      <button id="sqr">x²</button>
+      <button id="sqrt">√x</button>
+      <button>/</button>
+
+      <button>7</button>
+      <button>8</button>
+      <button>9</button>
+      <button>*</button>
+
+      <button>4</button>
+      <button>5</button>
+      <button>6</button>
+      <button>-</button>
+
+      <button>1</button>
+      <button>2</button>
+      <button>3</button>
+      <button>+</button>
+
+      <button id="neg">+/-</button>
+      <button>0</button>
+      <button>.</button>
+      <button class="equal">=</button>
+    </div>
+  </div>
+
+  <!-- پنل history و memory -->
+  <div class="side-panel">
+    <div class="tabs">
+      <div class="tab active" id="historyTab">History</div>
+      <div class="tab" id="memoryTab">Memory</div>
+    </div>
+    <div class="panel-content" id="panelContent">
+      There's no history yet.
+    </div>
+  </div>
+
+  <script>
+   // گرفتن المنت نمایشگر عدد فعلی با id "current"
+const currentEl = document.getElementById("current");
+
+// گرفتن المنت نمایشگر تاریخچه با id "history"
+const historyEl = document.getElementById("history");
+
+// گرفتن تمام دکمه‌های داخل کانتینر دکمه‌ها
+const buttons = document.querySelectorAll(".buttons button");
+
+// گرفتن دکمه تغییر حالت (تاریک/روشن) با id "themeToggle"
+const themeToggle = document.getElementById("themeToggle");
+
+// متغیر برای ذخیره عدد فعلی که کاربر وارد می‌کند
+let current = "0";
+
+// متغیر برای ذخیره عدد قبلی هنگام انجام عملیات
+let previous = null;
+
+// متغیر برای ذخیره عملگر انتخاب شده (+ - * /)
+let operator = null;
+
+// متغیر برای تشخیص اینکه آخرین عمل "=" زده شده یا نه
+let justEvaluated = false;
+
+/* ==========================
+      تابع فرمت اعداد
+============================ */
+// این تابع عدد را با جداکننده هزارگان و حذف صفرهای اضافی قبل از عدد فرمت می‌کند
+function formatNumber(num) {
+  // جدا کردن قسمت صحیح و اعشاری عدد
+  const [intPart, decPart] = String(num).split(".");
+
+  // حذف صفرهای اضافه ابتدای عدد صحیح، نگه داشتن علامت منفی
+  const cleanInt = intPart.replace(/^(-?)0+(?!\d)/, "$1");
+
+  // اضافه کردن کاما برای جدا کردن هزارگان
+  const withSep = cleanInt.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  // اگر قسمت اعشاری وجود دارد، آن را به عدد اضافه کن، در غیر اینصورت فقط عدد صحیح را برگردان
+  return decPart ? `${withSep}.${decPart}` : withSep;
+}
+    //  تابع بروزرسانی نمایشگر
+function updateDisplay() {
+  // نمایش عدد فعلی با فرمت خوانا در المنت currentEl
+  currentEl.textContent = formatNumber(current);
+
+  // نمایش تاریخچه (عدد قبلی + عملگر) در المنت historyEl
+  // اگر عدد قبلی و عملگر موجود باشد نمایش بده، در غیر اینصورت خالی بگذار
+  historyEl.textContent = previous !== null && operator
+    ? `${formatNumber(previous)} ${operator}`
+    : "";
+}
+
+//  اضافه کردن event listener به همه دکمه‌ها
+buttons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const value = btn.textContent; // مقدار متن دکمه (عدد یا عملگر)
+
+    // اگر دکمه عدد بود
+    if (!isNaN(value)) {
+      // اگر عدد فعلی 0 است یا آخرین عمل "=" زده شده
+      if (current === "0" || justEvaluated) {
+        current = value;     // جایگزین کردن عدد فعلی با عدد جدید
+        justEvaluated = false; // حالت justEvaluated را خاموش کن
+      } else {
+        current += value;    // عدد جدید را به انتهای عدد فعلی اضافه کن
+      }
+    } 
+    // اگر دکمه "." بود و اعشار هنوز موجود نیست
+    else if (value === ".") {
+      if (!current.includes(".")) {
+        current += ".";     // نقطه اعشاری اضافه کن
+      }
+    } 
+    // اگر دکمه "C" بود (پاک کردن همه)
+    else if (value === "C") {
+      current = "0";        // عدد فعلی صفر شود
+      previous = null;      // عدد قبلی پاک شود
+      operator = null;      // عملگر پاک شود
+    } 
+    // اگر دکمه "CE" بود (پاک کردن عدد فعلی فقط)
+    else if (value === "CE") {
+      current = "0";
+    } 
+    // اگر دکمه Backspace بود
+    else if (value === "⌫") {
+      current = current.slice(0, -1) || "0"; // حذف آخرین رقم، اگر خالی شد صفر شود
+    } 
+    // اگر دکمه عملگر بود (+ - * ÷)
+    else if (["+", "-", "*", "÷"].includes(value)) {
+      if (previous === null) {
+        previous = current; // ذخیره عدد فعلی به عنوان عدد قبلی
+      } else if (operator) {
+        calculate();        // اگر عملگر قبلی وجود داشت، محاسبه کن
+      }
+      operator = value;     // ذخیره عملگر جدید
+      justEvaluated = false;
+      current = "0";        // آماده دریافت عدد بعدی
+    } 
+    // اگر دکمه "=" بود
+    else if (value === "=") {
+      if (operator && previous !== null) {
+        calculate();        // محاسبه با عملگر و عدد قبلی
+        operator = null;    // بعد از محاسبه عملگر پاک شود
+        previous = null;    // عدد قبلی پاک شود
+        justEvaluated = true; // علامت محاسبه انجام شد
+      }
+    } 
+    // دکمه تغییر علامت
+    else if (value === "±") {
+      current = String(-parseFloat(current));
+    } 
+    // درصد
+    else if (value === "%") {
+      current = String(parseFloat(current) / 100);
+    } 
+    // ریشه دوم
+    else if (value === "√x") {
+      current = String(Math.sqrt(parseFloat(current)));
+    } 
+    // مربع عدد
+    else if (value === "x²") {
+      current = String(Math.pow(parseFloat(current), 2));
+    } 
+    // معکوس عدد
+    else if (value === "1/x") {
+      current = String(1 / parseFloat(current));
+    }
+
+    // بروزرسانی نمایشگر بعد از هر عملیات
+    updateDisplay();
+  });
+});
+
+//  تابع محاسبه با عملگر انتخاب شده
+function calculate() {
+  const prev = parseFloat(previous); // تبدیل عدد قبلی به float
+  const curr = parseFloat(current);  // تبدیل عدد فعلی به float
+
+  switch (operator) { // بسته به عملگر محاسبه انجام می‌شود
+    case "+": current = String(prev + curr); break;
+    case "-": current = String(prev - curr); break;
+    case "*": current = String(prev * curr); break;
+    case "÷": current = curr !== 0 ? String(prev / curr) : "خطا"; break; // تقسیم بر صفر خطا
+  }
+
+  previous = null; // بعد از محاسبه عدد قبلی پاک می‌شود
+}
+
+// بروزرسانی نمایشگر در ابتدا
+updateDisplay();
+  </script>
+</body>
+</html>
